@@ -111,14 +111,13 @@ app.put('/client/createInvoice', auth, async(req, res) => {
     let { email } = req.body;
 
     let dt = new Date;
-    let date = dt.getDate();
     let month = dt.getMonth();
     let year =  dt.getFullYear();
 
-    // if(date >= 5)
-    // {
+    if(date >= 5)
+    {
         month++;
-        due_date = date + '-' + month + '-' + year;
+        due_date = 5 + '-' + month + '-' + year;
 
         totalAmount = Math.floor(Math.random() * 50000);
         let percentage = totalAmount * 0.2;
@@ -143,9 +142,9 @@ app.put('/client/createInvoice', auth, async(req, res) => {
 
 
         res.send(client);
-    // }
+    }
 
-    // res.send('No Dues left to pay!')
+    res.send('No Dues left to pay!')
 });
 
 app.post('/sendInvoice/:id', auth, async(req, res) => {

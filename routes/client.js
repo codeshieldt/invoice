@@ -19,12 +19,11 @@ app.post('/signup', async (req, res) => {
     if(client) return res.status(400).send('Client already register!');
     
     let dt = new Date;
-    let date = dt.getDate();
     let month = dt.getMonth();
     let year =  dt.getFullYear();
 
     month++;
-    due_date = date + '-' + month + '-' + year;
+    due_date = 5 + '-' + month + '-' + year;
 
     totalAmount = Math.floor(Math.random() * 50000);
     let percentage = totalAmount * 0.2;
