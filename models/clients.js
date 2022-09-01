@@ -18,6 +18,10 @@ const clientSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
+    phoneNumber: {
+        type: Number,
+        required: true,
+    },
     productName: {
         type: Array,
         required: true,
@@ -37,6 +41,7 @@ function validateClient(client) {
         name: Joi.string().required().trim(),
         email: Joi.string().required().email(),
         password: Joi.string().required(),
+        phoneNumber: Joi.number().required(),
         productName: Joi.array().required()
     }
 

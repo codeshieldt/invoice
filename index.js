@@ -3,9 +3,11 @@ const app = express();
 require('dotenv').config()
 const client = require('./routes/client');
 const admin = require('./routes/admin');
+const home = require('./routes/home');
 require('./db/db');
 
 app.use(express.json())
+app.use('/', home);
 app.use('/client', client);
 app.use('/admin', admin);
 

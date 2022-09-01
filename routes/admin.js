@@ -9,16 +9,25 @@ const auth = require('../middleware/auth');
 const { Invoice } = require('../models/invoices')
 require('dotenv').config();
 
-app.get("/:id", auth, async(req, res) => {
-    const user = await User.findById(req.params.id).select('-password');
-    res.send(user);
+app.get('/seeClients', auth, async(req, res) => {
+    const client = await Client
+                            .find()
+                            .populate('invoice');
+    res.send(client)
+});
+
+app.get('/seeClient/:id', auth, async(req, res) => {
+    const client = await Client
+                            .findById(req.params.id)
+                            .populate('invoice');
+    res.send(client)
 });
 
 app.post('/signup', async (req, res) => {
     const { error } = validateUser(req.body);
     if(error) return res.status(400).send(error.details[0].message);
 
-    let { name, email, password, isAdmin } = req.body;
+    let { name, email, password, phoneNumber, isAdmin } = req.body;
 
     let user = await User.findOne({ email });
     if(user) return res.status(400).send('User already register!');
@@ -28,6 +37,7 @@ app.post('/signup', async (req, res) => {
         name,
         email,
         password,
+        phoneNumber,
         isAdmin,
     });
 
@@ -37,7 +47,7 @@ app.post('/signup', async (req, res) => {
     user = await user.save();
 
     const token = user.generateAuthToken()
-    console.log(token);
+    // console.log(token);
     res.header('token', token).send(user).status(200);
 });
 
@@ -54,14 +64,24 @@ app.post('/login', async (req, res) => {
     if(!validPassword) return res.status(400).send('Invalid Credentails!');
 
     const token = user.generateAuthToken();
-    res.header('token', token).status(200).send('Logged In');
+    res.header('token', token).status(200).json({
+        LogInSuccessful: {
+            "See All Clients": "GET http://localhost:3000/admin/seeClients",
+            "See a specific Client": "GET http://localhost:3000/admin/seeClient/:id",
+            "Create an Invoice": "PUT http://localhost:3000/admin/client/createInvoice",
+            "Send an Invoice Via Email": "POST http://localhost:3000/admin/sendInvoice/:id",
+            "Update your Account": "PUT http://localhost:3000/admin/:id",
+            "Delete Your Acount": "DELETE http://localhost:3000/admin/:id"
+        },
+        user
+    });
 });
 
 app.put('/:id', auth, async (req, res) => {
     const { error } = validateUser(req.body);
     if(error) return res.status(400).send(error.details[0].message);
 
-    let { name, email, password, isAdmin } = req.body;
+    let { name, email, password, phoneNumber, isAdmin } = req.body;
 
     let user = await User.findOne({ email });
     if(user) return res.status(400).send('User already register!');
@@ -72,6 +92,7 @@ app.put('/:id', auth, async (req, res) => {
         name,
         email,
         password,
+        phoneNumber,
         isAdmin,
     });
 
@@ -94,33 +115,37 @@ app.put('/client/createInvoice', auth, async(req, res) => {
     let month = dt.getMonth();
     let year =  dt.getFullYear();
 
-    if(date == 5)
-    {
+    // if(date >= 5)
+    // {
         month++;
         due_date = date + '-' + month + '-' + year;
 
         totalAmount = Math.floor(Math.random() * 50000);
         let percentage = totalAmount * 0.2;
         totalAmountDue = totalAmount + percentage;
+        let link = 'http://localhost:3000/client/payBills'
+        let paid = false;
 
         let invoice = await new Invoice({
             due_date,
             totalAmount,
-            totalAmountDue
+            totalAmountDue,
+            link,
+            paid
         });
         
         invoice = await invoice.save();
 
-        client = await Client.findOneAndUpdate({email},
+        let client = await Client.findOneAndUpdate({email},
             {
                 invoice
-            }, { new: true });
+            }, { new: true }).populate('invoice');
 
 
         res.send(client);
-    }
+    // }
 
-    res.send('Dues left to pay!')
+    // res.send('No Dues left to pay!')
 });
 
 app.post('/sendInvoice/:id', auth, async(req, res) => {
@@ -156,13 +181,12 @@ app.post('/sendInvoice/:id', auth, async(req, res) => {
             
             transporter.sendMail(mailOptions, function(error, info){
                 if (error) {
-                console.log(error);
+                res.send(error);
                 } else {
-                console.log('Email sent: ' + info.response);
+                res.send('Email sent: ' + info.response);
                 }
             });
-        }  
-        res.send("Email Sent");
+        }
     };
     res.send('No dues left!').status(200);
 });

@@ -13,6 +13,9 @@ const invoiceSchema = new mongoose.Schema({
     totalAmountDue: {
         type: Number
     },
+    paid: {
+        type: Boolean
+    }
 });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
