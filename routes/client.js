@@ -139,9 +139,12 @@ app.delete('/:id', async(req, res) => {
     res.send('Deleted');
 });
 
-app.post('/payBills/:id', async(req, res) => {
-    let client = await Client.findById(req.params.id).populate('invoice');
-    const { password } = req.body;
+app.post('/payBills', async(req, res) => {
+    let { email, password } = req.body;
+
+    let client = await Client.findOne({ email });
+    if(!client) return res.status(400).send('Invalid Credentails!');
+
     validPassword = await bcrypt.compare(password, client.password);
     if(!validPassword) return res.status(400).send('Invalid password');
 
