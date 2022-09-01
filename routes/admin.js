@@ -6,7 +6,13 @@ const { User, validateUser } = require('../models/admins');
 const { Client } = require('../models/clients');
 const nodemailer = require('nodemailer');
 const auth = require('../middleware/auth');
+const { Invoice } = require('../models/invoices')
 require('dotenv').config();
+
+app.get("/:id", auth, async(req, res) => {
+    const user = await User.findById(req.params.id).select('-password');
+    res.send(user);
+});
 
 app.post('/signup', async (req, res) => {
     const { error } = validateUser(req.body);
@@ -79,6 +85,39 @@ app.put('/:id', auth, async (req, res) => {
     res.header('token', token).send(user).status(200);
 });
 
+
+app.put('/client/createInvoice', auth, async(req, res) => {
+    let { email } = req.body;
+
+    let dt = new Date;
+    let date = dt.getDate();
+    let month = dt.getMonth();
+    let year =  dt.getFullYear();
+
+    month++;
+    due_date = date + '-' + month + '-' + year;
+
+    totalAmount = Math.floor(Math.random() * 50000);
+    let percentage = totalAmount * 0.2;
+    totalAmountDue = totalAmount + percentage;
+
+    let invoice = await new Invoice({
+        due_date,
+        totalAmount,
+        totalAmountDue
+    });
+    
+    invoice = await invoice.save();
+
+    client = await Client.findOneAndUpdate({email},
+        {
+            invoice
+        }, { new: true });
+
+
+    res.send(client);
+});
+
 app.post('/sendInvoice/:id', auth, async(req, res) => {
     let client = await Client
                         .findById(req.params.id)
@@ -90,7 +129,7 @@ app.post('/sendInvoice/:id', auth, async(req, res) => {
     let month = dt.getMonth();
 
     clientDate = Number(client.invoice.due_date.slice(0,2));
-    clientMonth = Number(client.invoice.due_date.slice(3,4));
+    clientMonth = Number(client.invoice.due_date.slice(3,4));   //2-10-2022
 
     if(month > clientMonth)
     {

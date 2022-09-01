@@ -36,7 +36,7 @@ app.post('/signup', async (req, res) => {
     let percentage = totalAmount * 0.2;
     totalAmountDue = totalAmount + percentage;
 
-    link = 'http://localhost:3000/client/payBills/:id'
+    link = 'http://localhost:3000/client/payBills'
 
     let invoice = await new Invoice({
         due_date,
@@ -140,6 +140,9 @@ app.delete('/:id', async(req, res) => {
 });
 
 app.post('/payBills', async(req, res) => {
+    const { error } = validate(req.body);
+    if(error) return res.status(400).send(error.details[0].message);
+    
     let { email, password } = req.body;
 
     let client = await Client.findOne({ email });
