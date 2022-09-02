@@ -69,7 +69,7 @@ app.post('/login', async (req, res) => {
             "See All Clients": "GET http://localhost:3000/admin/seeClients",
             "See a specific Client": "GET http://localhost:3000/admin/seeClient/:id",
             "Create an Invoice": "PUT http://localhost:3000/admin/client/createInvoice",
-            "Send an Invoice Via Email": "POST http://localhost:3000/admin/sendInvoice/:id",
+            "Send an Invoice Via Email": "POST http://localhost:3000/admin/sendInvoice",
             "Update your Account": "PUT http://localhost:3000/admin/:id",
             "Delete Your Acount": "DELETE http://localhost:3000/admin/:id"
         },
@@ -147,9 +147,11 @@ app.put('/client/createInvoice', auth, async(req, res) => {
     res.send('No Dues left to pay!')
 });
 
-app.post('/sendInvoice/:id', auth, async(req, res) => {
+app.post('/sendInvoice', auth, async(req, res) => {
+    const { email } = req.body
+    
     let client = await Client
-                        .findById(req.params.id)
+                        .findOne({ email })
                         .populate('invoice');
 
     let dt = new Date;
