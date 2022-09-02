@@ -111,39 +111,49 @@ app.put('/client/createInvoice', auth, async(req, res) => {
     let { email } = req.body;
 
     let dt = new Date;
+    let date = dt.getDate();
     let month = dt.getMonth();
     let year =  dt.getFullYear();
 
-    if(date >= 5)
+    let client = await Client.findOne({ email }).populate('invoice');
+    for(let key in client)
     {
-        month++;
-        due_date = 5 + '-' + month + '-' + year;
+        key = client.invoice.paid
+        if(key == false)
+        {
+            res.send('Client hasn\'t paid his dues.')
+        }
+        else{
 
-        totalAmount = Math.floor(Math.random() * 50000);
-        let percentage = totalAmount * 0.2;
-        totalAmountDue = totalAmount + percentage;
-        let link = 'http://localhost:3000/client/payBills'
-        let paid = false;
-
-        let invoice = await new Invoice({
-            due_date,
-            totalAmount,
-            totalAmountDue,
-            link,
-            paid
-        });
-        
-        invoice = await invoice.save();
-
-        let client = await Client.findOneAndUpdate({email},
+            if(date >= 5)
             {
-                invoice
-            }, { new: true }).populate('invoice');
+                month++;
+                due_date = 5 + '-' + month + '-' + year;
 
+                totalAmount = Math.floor(Math.random() * 50000);
+                let percentage = totalAmount * 0.2;
+                totalAmountDue = totalAmount + percentage;
+                let link = 'http://localhost:3000/client/payBills'
+                let paid = false;
 
-        res.send(client);
+                let invoice = await new Invoice({
+                    due_date,
+                    totalAmount,
+                    totalAmountDue,
+                    link,
+                    paid
+                });
+
+                invoice = await invoice.save();
+            
+                let client = await Client.findOneAndUpdate({email},
+                    {
+                        invoice
+                    }, { new: true }).populate('invoice');
+                res.send(client);
+            }
+        }
     }
-
     res.send('No Dues left to pay!')
 });
 
